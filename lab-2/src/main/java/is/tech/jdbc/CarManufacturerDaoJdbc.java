@@ -21,7 +21,7 @@ public class CarManufacturerDaoJdbc implements CarManufacturerDao, AutoCloseable
 
     @Override
     public CarManufacturer save(CarManufacturer entity) throws SQLException {
-        String saveSql = "INSERT INTO car_manufacturer(id, name, foundation_date) " +
+        String saveSql = "INSERT INTO car_manufacturer(id, name, date) " +
                 "VALUES(?, ?, ?)";
 
         try (PreparedStatement statement = db.prepareStatement(saveSql)) {
@@ -71,7 +71,7 @@ public class CarManufacturerDaoJdbc implements CarManufacturerDao, AutoCloseable
 
     @Override
     public CarManufacturer update(CarManufacturer entity) throws SQLException {
-        String updateSql = "UPDATE car_manufacturer SET name=?, foundation_date=? " +
+        String updateSql = "UPDATE car_manufacturer SET name=?, date=? " +
                 "WHERE id=?";
 
         try (PreparedStatement statement = db.prepareStatement(updateSql)) {
@@ -89,12 +89,12 @@ public class CarManufacturerDaoJdbc implements CarManufacturerDao, AutoCloseable
             System.out.println(e.getMessage());
         }
 
-        return null;
+        return entity;
     }
 
     @Override
     public CarManufacturer getById(long id) throws SQLException {
-        String getSql = "SELECT name, foundation_date FROM car_manufacturer " +
+        String getSql = "SELECT name, date FROM car_manufacturer " +
                 "WHERE id=?";
 
         CarManufacturer res = null;
@@ -109,13 +109,13 @@ public class CarManufacturerDaoJdbc implements CarManufacturerDao, AutoCloseable
             res = new CarManufacturer();
             res.setId(id);
             res.setName(rs.getString("name"));
-            res.setDate(rs.getDate("foundation_date").toLocalDate());
+            res.setDate(rs.getDate("date").toLocalDate());
 
         } catch (SQLException | JdbcException e) {
             System.out.println(e.getMessage());
         }
 
-        return null;
+        return res;
     }
 
     @Override
@@ -127,14 +127,14 @@ public class CarManufacturerDaoJdbc implements CarManufacturerDao, AutoCloseable
             ResultSet rs = statement.executeQuery(getAllSql);
 
             if (!rs.isBeforeFirst()) {
-                throw new JdbcException("Get all failed");
+                throw new JdbcException("Get all failed or table is empty");
             }
 
             while (rs.next()) {
                 CarManufacturer tmp = new CarManufacturer();
                 tmp.setId(rs.getLong("id"));
                 tmp.setName(rs.getString("name"));
-                tmp.setDate(rs.getDate("foundation_date").toLocalDate());
+                tmp.setDate(rs.getDate("date").toLocalDate());
 
                 res.add(tmp);
             }

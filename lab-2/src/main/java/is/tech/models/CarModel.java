@@ -12,4 +12,7 @@ public class CarModel {
     private int width;
     private String bodyStyle;
     private CarManufacturer carManufacturer;
+    private long manufacturerId;
+
+    public CarModel() {}
 }
