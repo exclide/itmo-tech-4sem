@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) throws SQLException, IOException {
+    public static void RunPerformanceTests() throws SQLException, IOException {
         PerformanceTest test = new PerformanceTest(new CarManufacturerDaoJdbc(), "jdbc");
         test.measureCreate();
         test.measureGet();
@@ -34,5 +34,8 @@ public class Main {
 
         test.measureCreate();
         test.measureGet();
+    }
+    public static void main(String[] args) throws SQLException, IOException {
+
     }
 }
