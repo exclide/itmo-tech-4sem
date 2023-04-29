@@ -3,10 +3,65 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="is.tech.mybatis.CarModelMapper">
+    <resultMap id="ModelRS" type="is.tech.models.CarModel">
+        <id property="id" column="cmod_id" />
+        <result property="name" column="cmod_name"/>
+        <result property="length" column="length"/>
+        <result property="width" column="width"/>
+        <result property="bodyStyle" column="body_style"/>
+        <result property="manufacturerId" column="manufacturer_id"/>
 
-    <select id="getById" parameterType="long" resultType="is.tech.models.CarModel">
-        select * from car_model where id = #{id}
+        <association property="carManufacturer" javaType="is.tech.models.CarManufacturer">
+            <id property="id" column="cmanu_id"/>
+            <result property="name" column="cmanu_name"/>
+            <result property="date" column="cmanu_date"/>
+        </association>
+    </resultMap>
+
+    <insert id="save" parameterType="is.tech.models.CarModel">
+        insert into car_model (id,name,length,width,body_style,manufacturer_id)
+        values (#{id},#{name},#{length},#{width},#{bodyStyle},#{manufacturerId})
+    </insert>
+
+    <delete id ="deleteById" parameterType="long">
+        delete from car_model where id=#{id}
+    </delete>
+
+    <delete id="deleteAll">
+        TRUNCATE car_model CASCADE
+    </delete>
+
+    <update id="update" parameterType="is.tech.models.CarModel">
+        update car_model
+        set name=#{name}, length=#{length}, width=#{width}, body_style=#{bodyStyle}, manufacturer_id=#{manufacturerId}
+        where id=#{id}
+    </update>
+
+    <select id="getById" parameterType="long" resultMap="ModelRS">
+        select cmod.id as cmod_id, cmod.name as cmod_name, cmod.length, cmod.width, cmod.body_style, cmod.manufacturer_id,
+        cmanu.id as cmanu_id, cmanu.name as cmanu_name, cmanu.date as cmanu_date
+        from car_model cmod
+        inner join car_manufacturer cmanu
+        on cmod.manufacturer_id=cmanu.id
+        where cmod.id = #{id}
     </select>
 
+    <select id="getAll" resultMap="ModelRS">
+        select cmod.id as cmod_id, cmod.name as cmod_name, cmod.length, cmod.width, cmod.body_style, cmod.manufacturer_id,
+        cmanu.id as cmanu_id, cmanu.name as cmanu_name, cmanu.date as cmanu_date
+        from car_model cmod
+        inner join car_manufacturer cmanu
+        on cmod.manufacturer_id=cmanu.id
+        where cmod.id = #{id}
+    </select>
+
+    <select id="getAllByVId" resultMap="ModelRS">
+        select cmod.id as cmod_id, cmod.name as cmod_name, cmod.length, cmod.width, cmod.body_style, cmod.manufacturer_id,
+        cmanu.id as cmanu_id, cmanu.name as cmanu_name, cmanu.date as cmanu_date
+        from car_model cmod
+        inner join car_manufacturer cmanu
+        on cmod.manufacturer_id=cmanu.id
+        where cmanu.id = #{id}
+    </select>
 
 </mapper>
