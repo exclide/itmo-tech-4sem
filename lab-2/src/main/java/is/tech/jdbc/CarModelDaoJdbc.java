@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static util.DbConnectionInfo.*;
+import static is.tech.util.DbConnectionInfo.*;
 
 public class CarModelDaoJdbc implements CarModelDao, AutoCloseable {
     Connection db;

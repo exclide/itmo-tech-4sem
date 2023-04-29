@@ -9,6 +9,7 @@ import is.tech.models.CarManufacturer;
 import is.tech.models.CarModel;
 import is.tech.mybatis.CarManufacturerDaoBatis;
 import is.tech.mybatis.CarModelDaoBatis;
+import is.tech.performance.PerformanceTest;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -18,24 +19,20 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException {
-        //CarManufacturerDao dao = new CarManufacturerDaoHib();
+        PerformanceTest test = new PerformanceTest(new CarManufacturerDaoJdbc(), "jdbc");
+        test.measureCreate();
+        test.measureGet();
 
-        var m2 = new CarManufacturer(1, "test2", LocalDate.now());
-        var m3 = new CarManufacturer(2, "test3", LocalDate.now());
+        test.setDao(new CarManufacturerDaoBatis());
+        test.setOrm("mybatis");
 
-        CarModelDao dao = new CarModelDaoHib();
+        test.measureCreate();
+        test.measureGet();
 
-        /*
-        CarModel mod1 = new CarModel(0, "x5", 5, 5, "sedan", m2, m2.getId());
-        CarModel mod2 = new CarModel(1, "corolla", 6, 6, "sedan", m3, m3.getId());
+        test.setDao(new CarManufacturerDaoHib());
+        test.setOrm("hibernate");
 
-        dao.save(mod1);
-        dao.save(mod2);*/
-
-        dao.deleteAll();
-
-
-
-
+        test.measureCreate();
+        test.measureGet();
     }
 }
