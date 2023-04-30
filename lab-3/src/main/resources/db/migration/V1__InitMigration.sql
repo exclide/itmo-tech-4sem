@@ -1,4 +1,4 @@
-create table car_manufacturer
+create table if not exists car_manufacturer
 (
     id   bigint not null
         primary key,
@@ -9,7 +9,7 @@ create table car_manufacturer
 alter table car_manufacturer
     owner to postgres;
 
-create table car_model
+create table if not exists car_model
 (
     id              bigint  not null
         primary key,

@@ -1,7 +1,7 @@
 alter table if exists car_model
     add column height integer;
 
-create table car_engine
+create table if not exists car_engine
 (
     engineId bigint not null primary key,
     engineName text not null,
