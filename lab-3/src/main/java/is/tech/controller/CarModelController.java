@@ -1,5 +1,6 @@
 package is.tech.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import is.tech.models.CarManufacturer;
 import is.tech.models.CarModel;
 import is.tech.repository.CarManufacturerRepository;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarModelController {
 
     CarModelRepository repository;
@@ -19,31 +21,31 @@ public class CarModelController {
         this.repository = repository;
     }
 
-    @GetMapping(value="/carModels")
+    @GetMapping(value="/api/carModels")
     public List<CarModel> getAllCarModels() {
         return repository.findAll();
     }
-    @GetMapping(value="/carModels/{id}")
+    @GetMapping(value="/api/carModels/{id}")
     public CarModel getCarModel(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    @GetMapping(value="/carModels/modelName={name}")
+    @GetMapping(value="/api/carModels/modelName={name}")
     public List<CarModel> getCarModelsByName(@PathVariable String name) {
         return repository.getAllByName(name);
     }
 
-    @GetMapping(value="/carModels/manufacturerId={parentId}")
+    @GetMapping(value="/api/carModels/manufacturerId={parentId}")
     public List<CarModel> getCarModelsByManufacturerId(@PathVariable Long parentId) {
         return repository.getAllByManufacturerId(parentId);
     }
 
-    @PostMapping(value="/carModels")
+    @PostMapping(value="/api/carModels")
     public CarModel postCarModel(@RequestBody CarModel model) {
         return repository.save(model);
     }
 
-    @PutMapping(value="/carModels/{id}")
+    @PutMapping(value="/api/carModels/{id}")
     public CarModel updateCarModel(@RequestBody CarModel model, @PathVariable Long id) {
         var updateModel = repository.findById(id).orElse(null);
 
@@ -62,12 +64,12 @@ public class CarModelController {
         return repository.save(updateModel);
     }
 
-    @DeleteMapping("/carModels/{id}")
+    @DeleteMapping("/api/carModels/{id}")
     void deleteCarModel(@PathVariable Long id) {
         repository.deleteById(id);
     }
 
-    @DeleteMapping("/carModels")
+    @DeleteMapping("/api/carModels")
     void deleteAllCarModels() {
         repository.deleteAll();
     }
