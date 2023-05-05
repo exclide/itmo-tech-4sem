@@ -21,6 +21,4 @@ public class CarModel {
     @ManyToOne
     @JoinColumn(name="manufacturer_id", nullable = false)
     private CarManufacturer carManufacturer;
-    @Column(name="manufacturer_id", updatable=false, insertable=false)
-    private long manufacturerId;
 }

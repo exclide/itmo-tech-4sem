@@ -34,7 +34,7 @@ public class CarModelController {
         return repository.findAll();
     }
     @GetMapping(value="/api/carModels/{id}")
-    @PostAuthorize("hasAuthority('SCOPE_ADMIN') or returnObject.carManufacturer.name == authentication.name")
+    @PostAuthorize("hasAuthority('SCOPE_ADMIN') or returnObject.carManufacturer.owner.username == authentication.name")
     public CarModel getCarModel(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
     }
@@ -48,7 +48,7 @@ public class CarModelController {
     @GetMapping(value="/api/carModels/manufacturerId={parentId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #parentId")
     public List<CarModel> getCarModelsByManufacturerId(@PathVariable Long parentId) {
-        return repository.getAllByManufacturerId(parentId);
+        return repository.getAllByCarManufacturer_Id(parentId);
     }
 
 
@@ -60,7 +60,7 @@ public class CarModelController {
                 .findById(model.manufacturerId)
                 .orElseThrow(() -> new SecurityException("manu not found"));
 
-        CarModel carModel = new CarModel(model.id, model.name, model.length, model.width, model.bodyStyle, carManufacturer, model.manufacturerId);
+        CarModel carModel = new CarModel(model.id, model.name, model.length, model.width, model.bodyStyle, carManufacturer);
         return repository.save(carModel);
     }
 
@@ -80,7 +80,6 @@ public class CarModelController {
         updateModel.setName(model.getName());
         updateModel.setBodyStyle(model.getBodyStyle());
         updateModel.setCarManufacturer(updateModel.getCarManufacturer());
-        updateModel.setManufacturerId(updateModel.getManufacturerId());
 
         return repository.save(updateModel);
     }
@@ -100,6 +99,6 @@ public class CarModelController {
     @DeleteMapping("/api/carModels?carManufacturer={manufacturerId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #manufacturerId")
     void deleteCarModelsByManufacturerId(@PathVariable Long manufacturerId) {
-        repository.deleteAllByManufacturerId(manufacturerId);
+        repository.deleteAllByCarManufacturer_Id(manufacturerId);
     }
 }
