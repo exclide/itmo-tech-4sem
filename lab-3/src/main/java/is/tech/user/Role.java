@@ -19,7 +19,7 @@ import java.util.Set;
 public class Role implements GrantedAuthority {
     @Id
     @Column(name="role_id")
-    private long id;
+    private Long id;
     private String name;
 
     @Override

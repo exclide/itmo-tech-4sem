@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import is.tech.auth.UserDetailsServiceImpl;
 import is.tech.properties.RsaProperties;
+import is.tech.token.CustomJwtAuthenticationConverter;
 import is.tech.token.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,27 +18,24 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
     private final RsaProperties rsaKeys;
     private final UserDetailsServiceImpl userDetailsService;
+    private final CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
 
     public SecurityConfiguration(RsaProperties rsaKeys, UserDetailsServiceImpl userDetailsService) {
         this.rsaKeys = rsaKeys;
         this.userDetailsService = userDetailsService;
+        this.customJwtAuthenticationConverter = new CustomJwtAuthenticationConverter(userDetailsService);
     }
 
     @Bean
@@ -78,12 +76,12 @@ public class SecurityConfiguration {
                 .httpBasic().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/login").permitAll()
-                //.requestMatchers("/api/users").permitAll()
-                .requestMatchers("/api/**").hasAuthority("SCOPE_ADMIN")
+                .requestMatchers("/api/**").hasAuthority("SCOPE_USER")
                 .requestMatchers("**").permitAll()
                 .anyRequest().authenticated().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer :: jwt);
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt()
+                        .jwtAuthenticationConverter(customJwtAuthenticationConverter));
 
         return http.build();
     }

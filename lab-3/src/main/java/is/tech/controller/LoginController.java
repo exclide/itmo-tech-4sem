@@ -2,13 +2,20 @@ package is.tech.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import is.tech.auth.UserDetailsServiceImpl;
+import is.tech.token.CustomAuthenticationToken;
 import is.tech.token.TokenService;
 import is.tech.user.User;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 public class LoginController {
@@ -24,33 +31,27 @@ public class LoginController {
     }
 
     record LoginRequest(String username, String password) {};
-    record LoginResponse(String message, String access_jwt_token, String refresh_jwt_token) {};
     @PostMapping(value="/api/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
-
+    public String login(@RequestBody LoginRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.username, request.password);
         Authentication auth = authManager.authenticate(authenticationToken);
 
         User user = (User) userDetailsService.loadUserByUsername(request.username);
-        String access_token = tokenService.generateAccessToken(user);
-        String refresh_token = tokenService.generateRefreshToken(user);
 
-        return new LoginResponse("User with username = "+ request.username + " successfully logined!"
-                , access_token, refresh_token);
+        return tokenService.generateAccessToken(user);
     }
 
-    record RefreshTokenResponse(String access_jwt_token, String refresh_jwt_token) {};
-    @GetMapping("/api/token/refresh")
-    public RefreshTokenResponse refreshToken(HttpServletRequest request) {
-        String headerAuth = request.getHeader("Authorization");
-        String refreshToken = headerAuth.substring(7);
+    @GetMapping("/api/token/parse")
+    @SecurityRequirement(name = "bearerAuth")
+    public String parseToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return tokenService.parseToken(token);
+    }
 
-        String email = tokenService.parseToken(refreshToken);
-        User user = (User) userDetailsService.loadUserByUsername(email);
-        String access_token = tokenService.generateAccessToken(user);
-        String refresh_token = tokenService.generateRefreshToken(user);
-
-        return new RefreshTokenResponse(access_token, refresh_token);
+    @GetMapping("/api/authDetails")
+    @SecurityRequirement(name = "bearerAuth")
+    public String authDetails(CustomAuthenticationToken auth) {
+        return "User id: " + auth.getUserId();
     }
 }

@@ -27,8 +27,6 @@ public class TokenService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
 
-        System.out.println(scope);
-
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
@@ -39,27 +37,10 @@ public class TokenService {
         return this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    public String generateRefreshToken(User user) {
-        Instant now = Instant.now();
-        String scope = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" "));
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
-                .issuedAt(now)
-                .expiresAt(now.plus(30, ChronoUnit.MINUTES))
-                .subject(user.getUsername())
-                .claim("scope", scope)
-                .build();
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-    }
-
     public String parseToken(String token) {
         try {
             SignedJWT decodedJWT = SignedJWT.parse(token);
-            String subject = decodedJWT.getJWTClaimsSet().getSubject();
-            return subject;
+            return decodedJWT.getJWTClaimsSet().getSubject();
         } catch (ParseException e) {
             e.printStackTrace();
         }
