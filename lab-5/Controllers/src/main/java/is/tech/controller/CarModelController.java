@@ -1,10 +1,10 @@
 package is.tech.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import is.tech.dtos.CarModelDto;
+import is.tech.kafka.KafkaModelService;
 import is.tech.models.CarManufacturer;
 import is.tech.models.CarModel;
-import is.tech.repository.CarManufacturerRepository;
-import is.tech.repository.CarModelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -14,89 +14,70 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 public class CarModelController {
-    CarModelRepository repository;
-    CarManufacturerRepository manufacturerRepository;
+    KafkaModelService kafkaService;
 
     @Autowired
-    public CarModelController(CarModelRepository repository, CarManufacturerRepository manufacturerRepository) {
-        this.repository = repository;
-        this.manufacturerRepository = manufacturerRepository;
+    public CarModelController(KafkaModelService kafkaService) {
+        this.kafkaService = kafkaService;
     }
 
     @GetMapping(value="/api/carModels")
     @PostFilter("hasAuthority('SCOPE_ADMIN') or filterObject.carManufacturer.owner.username == authentication.name")
-    public List<CarModel> getAllCarModels() {
-        return repository.findAll();
+    public List<CarModelDto> getAllCarModels() {
+        return kafkaService.findAll();
     }
     @GetMapping(value="/api/carModels/{id}")
     @PostAuthorize("hasAuthority('SCOPE_ADMIN') or returnObject.carManufacturer.owner.username == authentication.name")
-    public CarModel getCarModel(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    public CarModelDto getCarModel(@PathVariable Long id) {
+        return kafkaService.getById(id);
     }
 
     @GetMapping(value="/api/carModels/modelName={name}")
     @PostFilter("hasAuthority('SCOPE_ADMIN') or filterObject.carManufacturer.owner.username == authentication.name")
-    public List<CarModel> getCarModelsByName(@PathVariable String name) {
-        return repository.getAllByName(name);
+    public List<CarModelDto> getCarModelsByName(@PathVariable String name) {
+        return kafkaService.findAllByName(name);
     }
 
     @GetMapping(value="/api/carModels/manufacturerId={parentId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #parentId")
-    public List<CarModel> getCarModelsByManufacturerId(@PathVariable Long parentId) {
-        return repository.getAllByCarManufacturer_Id(parentId);
+    public List<CarModelDto> getCarModelsByManufacturerId(@PathVariable Long parentId) {
+        return kafkaService.findAllByCarManufacturerId(parentId);
     }
 
 
     record modelBody(long id, String name, int length, int width, String bodyStyle, long manufacturerId) {};
     @PostMapping(value="/api/carModels")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #model.manufacturerId()")
-    public CarModel postCarModel(@RequestBody modelBody model) {
-        CarManufacturer carManufacturer = manufacturerRepository
-                .findById(model.manufacturerId)
-                .orElseThrow(() -> new SecurityException("manu not found"));
-
-        CarModel carModel = new CarModel(model.id, model.name, model.length, model.width, model.bodyStyle, carManufacturer);
-        return repository.save(carModel);
+    public CarModelDto postCarModel(@RequestBody CarModelDto carModel) {
+        return kafkaService.save(carModel);
     }
 
 
     @PutMapping(value="/api/carModels/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #model.manufacturerId()")
-    public CarModel updateCarModel(@RequestBody CarModel model, @PathVariable Long id) {
-        var updateModel = repository.findById(id).orElse(null);
-
-        if (updateModel == null) {
-            model.setId(id);
-            return repository.save(model);
-        }
-
-        updateModel.setLength(model.getLength());
-        updateModel.setWidth(model.getWidth());
-        updateModel.setName(model.getName());
-        updateModel.setBodyStyle(model.getBodyStyle());
-        updateModel.setCarManufacturer(updateModel.getCarManufacturer());
-
-        return repository.save(updateModel);
+    public CarModelDto updateCarModel(@RequestBody CarModelDto carModel, @PathVariable Long id) {
+        return kafkaService.save(carModel);
     }
 
     @DeleteMapping("/api/carModels/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or carModelRepository.getById(#id).carManufacturer.id = authentication.manufacturerId")
     void deleteCarModel(@PathVariable Long id) {
-        repository.deleteById(id);
+        kafkaService.deleteById(id);
     }
 
     @DeleteMapping("/api/carModels")
     @Secured("SCOPE_ADMIN")
     void deleteAllCarModels() {
-        repository.deleteAll();
+        kafkaService.deleteAll();
     }
 
     @DeleteMapping("/api/carModels?carManufacturer={manufacturerId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or authentication.manufacturerId == #manufacturerId")
     void deleteCarModelsByManufacturerId(@PathVariable Long manufacturerId) {
-        repository.deleteAllByCarManufacturer_Id(manufacturerId);
+        kafkaService.deleteAllByCarManufacturerId(manufacturerId);
     }
 }
