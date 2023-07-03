@@ -15,6 +15,8 @@
         <module>lab-4</module>
         <module>lab-5</module>
         <module>lab-6</module>
+        <module>lab-5/CarManufacturers</module>
+        <module>lab-5/CarModels</module>
     </modules>
 
     <properties>
